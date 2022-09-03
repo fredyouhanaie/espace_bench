@@ -1,17 +1,22 @@
-# espace_bench
+# `espace_bench`
 
-Scripts to run microbenchmarks against
+Scripts to run [micro]benchmarks against
 [espace](https://github.com/fredyouhanaie/espace).
 
 This repo was part of the `espace` project, however, it has been
 separated from the main repository in order to enable running
-microbenchmarks against multiple versions of `espace`.
+[micro]benchmarks against multiple versions of `espace`.
+
+In addition to generating microbenchmarks, other `espace` application
+benchmarks are also being included here.
+
+## using `rebar3_bench`
 
 Currently we use the
 [rebar3_bench](https://github.com/seriyps/rebar3_bench) plugin. In due
 course other methods will be added here.
 
-## Running the benchmarks
+### Running the benchmarks
 
 To run the benchmarks, you will need a copy of the repo, and the
 latest copy of [rebar3](https://rebar3.org/):
@@ -39,7 +44,7 @@ rebar3 bench -b bench_out_1
 You will find a list of available microbenchmarks, named `bench_*`, in
 the `test/bench_espace_1.erl` file.
 
-## Process limit
+### Process limit
 
 The way `rebar3_bench` works is to run the benchmark functions 1000s
 of times. This works fine for most functions. However, since `eval`
@@ -53,7 +58,7 @@ use the script to run the benchmarks:
 ./run_bench.sh [ REBAR3_BENCH options ... ]
 ```
 
-## Benchmarking other `espace` versions
+### Benchmarking other `espace` versions
 
 The default version of `espace` benchmarked is the latest found on
 [hex](https://hex.pm/packages/espace).
