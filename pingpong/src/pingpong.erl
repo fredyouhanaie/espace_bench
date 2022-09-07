@@ -1,3 +1,13 @@
+%%%-------------------------------------------------------------------
+%%% @author Fred Youhanaie <fyrlang@anydata.co.uk>
+%%% @copyright (C) 2022, Fred Youhanaie
+%%% @doc
+%%%
+%%% Run the `pingpong' test from the command line.
+%%%
+%%% @end
+%%% Created :  7 Sep 2022 by Fred Youhanaie <fyrlang@anydata.co.uk>
+%%%-------------------------------------------------------------------
 -module(pingpong).
 
 %% API exports
@@ -29,6 +39,7 @@
 %%====================================================================
 
 %% escript Entry point
+-spec main(list()) -> none().
 main(Args) ->
     logger:set_primary_config(level, ?Log_level),
 
@@ -57,6 +68,7 @@ main(Args) ->
 %% Internal functions
 %%====================================================================
 
+-spec usage() -> ok.
 usage() ->
     io:format("Version ~p.~n", [?Version]),
     getopt:usage(?Opt_specs, atom_to_list(?MODULE), "[PINGS]",
@@ -77,6 +89,7 @@ process_args(Opts, Args) ->
 
 %%--------------------------------------------------------------------
 
+-spec process_command(list()) -> ok|error.
 process_command([]) ->
     pingpong1:start();
 
@@ -84,15 +97,19 @@ process_command([Arg_limit]) ->
     ?LOG_DEBUG(#{func => ?FUNCTION_NAME,
                  limit => Arg_limit}),
     try list_to_integer(Arg_limit) of
-        Limit -> pingpong1:start(Limit)
+        Limit ->
+            pingpong1:start(Limit),
+            ok
     catch
         error:E ->
             ?LOG_ERROR(#{func => ?FUNCTION_NAME, error => E}),
-            usage()
+            usage(),
+            error
     end;
 
 process_command(Args) ->
     io:format("too many arguments (~p)~n", [Args]),
-    usage().
+    usage(),
+    error.
 
 %%--------------------------------------------------------------------
