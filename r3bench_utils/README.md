@@ -14,10 +14,20 @@ applications is just the start.
 
 ## Build
 
+    $ cd /path_to_r3bench
     $ rebar3 escriptize
+
+The escript command will can run as `_build/default/bin/r3bench`,
+relative to the `r3bench` project directory.
+
+Of course, once the `r3bench` escript has been built, it can reside
+anywhere.
 
 ## Run
 
-    $ _build/default/bin/r3bench_dump /path_to_project/_build/test/bench/_tip
+    $ cd /path_to_project
+    $ rebar3 bench
+
+    $ /path_to_r3bench/ dump /path_to_project/_build/test/bench/_tip
 
 ---
