@@ -9,7 +9,7 @@
 %%% @end
 %%% Created : 01 Sep 2023 by Fred Youhanaie <fyrlang@anydata.co.uk>
 %%%-------------------------------------------------------------------
--module(r3bench_dump).
+-module(r3bench).
 
 %% API exports
 -export([main/1]).
