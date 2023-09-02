@@ -101,7 +101,7 @@ process_command([Cmd|Args]) ->
 
 -spec do_command(atom(), list()) -> ok|error.
 do_command(dump, [File]) ->
-    dump_baseline(File),
+    r3bench_dump:print(File),
     ok;
 
 do_command(dump, _) ->
@@ -112,14 +112,5 @@ do_command(Cmd, _Args) ->
     ?LOG_ERROR("Unknown command (~p).~n", [Cmd]),
     usage(),
     error.
-
-%%--------------------------------------------------------------------
-
-dump_baseline(Filename) ->
-    {ok, Data} = file:read_file(Filename),
-    {Version, Samples} = erlang:binary_to_term(Data),
-    io:format("version=~p.~n", [Version]),
-    [ io:format("Mod=~p, Fun=~p, Data=~p.~n", [M, F, D]) || {M, F, D} <- Samples ],
-    ok.
 
 %%====================================================================
