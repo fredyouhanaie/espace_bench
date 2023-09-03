@@ -8,5 +8,5 @@
 # concurrently, and the default limit of 262144 is insufficient.
 
 
-export ERL_FLAGS="+P $(( 8*262144 ))"
+export ERL_FLAGS="+P $(( 32*262144 ))"
 rebar3 bench "$@"
