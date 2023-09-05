@@ -12,11 +12,14 @@
 %%%
 %%% There are two workers, `ping' and `pong'.
 %%%
-%%% `ping' waits for `{ping}' tuple, once received, it outputs a
-%%% `{pong}' tuple. `ping' will stop after `LIMIT' pings, and it will
-%%% output a `{done}' tuple. The `{done}' is for the benefit of the
-%%% main function that start the whole benchmark.
+%%% `ping' will repeatedly wait/block for a `{ping}' tuple, once
+%%% received, it will output a `{pong}' tuple. `ping' will stop after
+%%% `LIMIT' pings, and it will output a `{done}' tuple. The `{done}'
+%%% tuple is for the benefit of the main function that start the whole
+%%% benchmark.
 %%%
+%%% `pong' will repeatedly output a `{ping}' tuple and wait/block for
+%%% a `{pong}' tuple.
 %%%
 %%% @end Created : 5 Dec 2020 by Fred Youhanaie <fy@localhost>
 %%%-------------------------------------------------------------------
@@ -35,7 +38,6 @@
 
 -spec ping(integer()) -> done.
 ping(0) ->
-    %% espace:out({done});
     done;
 
 ping(Count) ->
@@ -68,7 +70,7 @@ start(LIMIT) ->
     {Time_usec, _Result} = timer:tc(fun doit/1, [LIMIT]),
 
     espace:stop(),
-    timer:sleep(100), %% get rid of the log messages
+    timer:sleep(100), %% flush any outstanding log messages
 
     Time_sec = Time_usec / 1_000_000,
     io:format("Pairs=~p, Time=~p sec, Pairs/sec=~p.~n",
