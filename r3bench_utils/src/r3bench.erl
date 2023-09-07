@@ -84,7 +84,7 @@ process_args(Opts, Args) ->
 usage() ->
     io:format("Version ~p.~n", [?Version]),
     getopt:usage(?Opt_specs, atom_to_list(?MODULE), "command ...",
-                 [ {"command", "command to execute, e.g. dump, ..."} ]).
+                 [ {"command", "command to execute, e.g. dump, table ..."} ]).
 
 %%--------------------------------------------------------------------
 
@@ -104,13 +104,26 @@ do_command(dump, [File]) ->
     r3bench_dump:print(File),
     ok;
 
-do_command(dump, _) ->
-    ?LOG_ERROR("dump: single filename expected.~n", []),
+do_command(table, [File]) ->
+    Table = r3bench_dump:table(File),
+    print_table(Table),
+    ok;
+
+do_command(Cmd, _) when Cmd == dump orelse Cmd == table ->
+    ?LOG_ERROR("~p: single filename expected.~n", [Cmd]),
     error;
 
 do_command(Cmd, _Args) ->
     ?LOG_ERROR("Unknown command (~p).~n", [Cmd]),
     usage(),
     error.
+
+%%--------------------------------------------------------------------
+
+print_table([]) ->
+    ok;
+print_table([Row|Rest]) ->
+    io:format("~p~n", [Row]),
+    print_table(Rest).
 
 %%====================================================================
