@@ -10,7 +10,7 @@
 %%%-------------------------------------------------------------------
 -module(r3bench_dump).
 
--export([print/1, table/1]).
+-export([print/1, table/1, load_ets/1]).
 
 %%--------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ print(Filename) ->
     ok.
 
 %%--------------------------------------------------------------------
-%% @doc return a list of list of measurements.
+%% @doc return a list of measurements.
 %%
 %% Each element of the returned list represents a single raw
 %% measurement, [`Mod', `Fun', `Seq', `Param', `Value'].
@@ -67,6 +67,20 @@ table(Filename) ->
     {ok, Data} = file:read_file(Filename),
     {Version, Samples} = erlang:binary_to_term(Data),
     samples_to_table(Version, Samples).
+
+%%--------------------------------------------------------------------
+%% @doc load the samples from `Filename' into a new ETS table.
+%%
+%% A new ETS table is created and the tabid returned.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec load_ets(file:name_all()) -> ets:table().
+load_ets(Filename) ->
+    Samples = table(Filename),
+    Tab_id = ets:new(r3bench, [bag]),
+    ets:insert(Tab_id, Samples),
+    Tab_id.
 
 %%--------------------------------------------------------------------
 %% @doc convert the raw samples structure to a list of lists.
