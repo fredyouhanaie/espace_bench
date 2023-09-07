@@ -91,7 +91,11 @@ samples_to_table(_Version, _Samples) ->
     {error, "unrecognized samples version"}.
 
 %%--------------------------------------------------------------------
-
+%% @doc scan all the data and return a list of tuples, one per
+%% measurment.
+%%
+%% @end
+%%--------------------------------------------------------------------
 -spec samples_to_table([param()], [tuple()]|[], [tuple()]|[]) -> [tuple()]|[].
 samples_to_table(_Params, [], List) ->
     List;
@@ -101,7 +105,15 @@ samples_to_table(Params, [{Mod, Fun, Data}|Rest], List) ->
     samples_to_table(Params, Rest, List2).
 
 %%--------------------------------------------------------------------
-
+%% @doc scan the samples for the supplied `Mod' and `Fun'.
+%%
+%% For each list of measurements, currently 3, we generate a list of 3
+%% tuples and append them to the accumulator `List', i.e.
+%%
+%% `{Mod, Fun, Seq, Param, Value}'
+%%
+%% @end
+%%--------------------------------------------------------------------
 -spec samples_to_table([param()], atom(), atom(), [list()]|[], integer(), [list()]|[])
                       -> [tuple()]|[].
 samples_to_table(_Params, _Mod, _Fun, [], _Seq, List) ->
