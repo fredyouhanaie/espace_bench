@@ -10,7 +10,7 @@
 %%%-------------------------------------------------------------------
 -module(r3bench_dump).
 
--export([print/1, table/1, load_ets/1]).
+-export([print/1, table/1, load_ets/1, info/1]).
 
 %%--------------------------------------------------------------------
 
@@ -103,6 +103,19 @@ load_ets(Filename) ->
     Tab_id.
 
 %%--------------------------------------------------------------------
+%% @doc return summary information about the data file.
+%%
+%% A `map' of the base information is returned, namely `version',
+%% `modules', `functions' and `params'.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec info(file:name_all()) -> map().
+info(Filename) ->
+    {Version, Samples} = table(Filename),
+    maps:put(version, Version, unzip(Samples)).
+
+%%--------------------------------------------------------------------
 %% @doc read and unpack a dump file and return the raw samples.
 %%
 %% @end
@@ -164,5 +177,33 @@ samples_to_table(_Params, _Mod, _Fun, [], _Seq, List) ->
 samples_to_table(Params, Mod, Fun, [Values|Rest], Seq, List) when is_list(Values) ->
     Records = [ {Mod, Fun, Seq, P, V} || {P, V} <- lists:zip(Params, Values) ],
     samples_to_table(Params, Mod, Fun, Rest, Seq+1, List++Records).
+
+%% --------------------------------------------------------------------
+%% @doc extract map of modules, functions and params from a table of
+%% samples.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec unzip(table()) -> map().
+unzip(Samples) ->
+    unzip(Samples, #{modules => [], functions => [], params => []}).
+
+%% --------------------------------------------------------------------
+%% @doc extract map of modules, functions and params from a table of
+%% samples.
+%%
+%% We return three lists of unique names of modules, functions and
+%% parameters.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec unzip(table(), map()) -> map().
+unzip([], Map) ->
+    maps:map(fun (K, V) -> lists:usort(V) end, Map);
+
+unzip([{Mod, Fun, _, Par, _}|Rest], Map) ->
+    Map1 = #{modules => Mod, functions => Fun, params => Par},
+    Map2 = maps:merge_with(fun (K, L, X) -> [X|L] end, Map, Map1),
+    unzip(Rest, Map2).
 
 %%--------------------------------------------------------------------

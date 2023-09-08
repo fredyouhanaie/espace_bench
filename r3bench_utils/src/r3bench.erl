@@ -84,7 +84,7 @@ process_args(Opts, Args) ->
 usage() ->
     io:format("Version ~p.~n", [?Version]),
     getopt:usage(?Opt_specs, atom_to_list(?MODULE), "command ...",
-                 [ {"command", "command to execute, e.g. dump, table ..."} ]).
+                 [ {"command", "command to execute, e.g. dump, table, info ..."} ]).
 
 %%--------------------------------------------------------------------
 
@@ -107,6 +107,14 @@ do_command(dump, [File]) ->
 do_command(table, [File]) ->
     {_Version, Table} = r3bench_dump:table(File),
     print_table(Table),
+    ok;
+
+do_command(info, [File]) ->
+    Info = r3bench_dump:info(File),
+    io:format("Version:    ~p~n", [map_get(version  , Info)]),
+    io:format("Parameters: ~p~n", [map_get(params   , Info)]),
+    io:format("Modules:    ~p~n", [map_get(modules  , Info)]),
+    io:format("Functions:  ~p~n", [map_get(functions, Info)]),
     ok;
 
 do_command(Cmd, _) when Cmd == dump orelse Cmd == table ->
