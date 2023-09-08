@@ -31,8 +31,7 @@
 %%--------------------------------------------------------------------
 -spec print(file:name_all()) -> ok.
 print(Filename) ->
-    {ok, Data} = file:read_file(Filename),
-    {Version, Samples} = erlang:binary_to_term(Data),
+    {Version, Samples} = read_file(Filename),
     io:format("version=~p.~n", [Version]),
     [ io:format("Mod=~p, Fun=~p, Data=~p.~n", [M, F, D])
       || {M, F, D} <- Samples ],
@@ -62,11 +61,10 @@ print(Filename) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec table(file:name_all()) -> [tuple()].
+-spec table(file:name_all()) -> {list(), [tuple()]}.
 table(Filename) ->
-    {ok, Data} = file:read_file(Filename),
-    {Version, Samples} = erlang:binary_to_term(Data),
-    samples_to_table(Version, Samples).
+    {Version, Samples} = read_file(Filename),
+    {Version, samples_to_table(Version, Samples)}.
 
 %%--------------------------------------------------------------------
 %% @doc load the samples from `Filename' into a new ETS table.
@@ -77,10 +75,25 @@ table(Filename) ->
 %%--------------------------------------------------------------------
 -spec load_ets(file:name_all()) -> ets:table().
 load_ets(Filename) ->
-    Samples = table(Filename),
+    {Version, Samples} = table(Filename),
     Tab_id = ets:new(r3bench, [bag]),
     ets:insert(Tab_id, Samples),
     Tab_id.
+
+%%--------------------------------------------------------------------
+%% @doc read and unpack a dump file and return the raw samples.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec read_file(file:name_all()) -> {list(), [tuple()]}.
+read_file(Filename) ->
+    {ok, Data} = file:read_file(Filename),
+    {Version, Samples} = erlang:binary_to_term(Data),
+    {Version, Samples}.
+
+%%--------------------------------------------------------------------
+%% Internal functions
+%%--------------------------------------------------------------------
 
 %%--------------------------------------------------------------------
 %% @doc convert the raw samples structure to a list of lists.

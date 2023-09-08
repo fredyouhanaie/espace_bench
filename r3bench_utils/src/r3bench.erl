@@ -105,7 +105,7 @@ do_command(dump, [File]) ->
     ok;
 
 do_command(table, [File]) ->
-    Table = r3bench_dump:table(File),
+    {_Version, Table} = r3bench_dump:table(File),
     print_table(Table),
     ok;
 
