@@ -19,7 +19,29 @@
 -define(DUMP_FMT_VERSION, [0, 1, 0]).
 -define(DUMP_010_FIELDS,  [wall_time, memory, reductions]).
 
+%%--------------------------------------------------------------------
+
 -type param() :: wall_time | memory | reductions.
+%% The parameter names (based on dump file version 0.1.0)
+
+-type dumpfile() :: {version(), [samples()]}.
+%% The unpacked dumpfile
+
+-type version() :: [integer()].
+%% The current version of the dump file is `[0, 1, 0]'.
+
+-type samples() :: {module(), function(), [measurements()]}.
+%% The data element of each dumpfile
+
+-type measurements() :: [float()].
+%% The current version contains the measurements for `wall_time',
+%% `memory' and `reductions', respectively.
+
+-type table() :: []|[table_row()].
+%% The table of samples, expanded version of the raw samples.
+
+-type table_row() :: {module(), function(), integer(), param(), float()}.
+%% Each row of the table, for example as loaded into an ETS table.
 
 %%--------------------------------------------------------------------
 %% @doc read and print a baseline dump file.
@@ -61,7 +83,7 @@ print(Filename) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec table(file:name_all()) -> {list(), [tuple()]}.
+-spec table(file:name_all()) -> {version(), table()}.
 table(Filename) ->
     {Version, Samples} = read_file(Filename),
     {Version, samples_to_table(Version, Samples)}.
@@ -75,7 +97,7 @@ table(Filename) ->
 %%--------------------------------------------------------------------
 -spec load_ets(file:name_all()) -> ets:table().
 load_ets(Filename) ->
-    {Version, Samples} = table(Filename),
+    {_Version, Samples} = table(Filename),
     Tab_id = ets:new(r3bench, [bag]),
     ets:insert(Tab_id, Samples),
     Tab_id.
@@ -85,7 +107,7 @@ load_ets(Filename) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec read_file(file:name_all()) -> {list(), [tuple()]}.
+-spec read_file(file:name_all()) -> dumpfile().
 read_file(Filename) ->
     {ok, Data} = file:read_file(Filename),
     {Version, Samples} = erlang:binary_to_term(Data),
@@ -98,19 +120,11 @@ read_file(Filename) ->
 %%--------------------------------------------------------------------
 %% @doc convert the raw samples structure to a list of lists.
 %%
-%% Each inner list will contain the following:
-%%
-%% - module
-%% - function
-%% - sequence
-%% - param
-%% - value
-%%
-%% The `param' will be based on `Version', currently `[0,1,0]'.
+%% see types `table()' and `table_row()' for further details.
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec samples_to_table([integer()], [tuple()]|[]) -> [tuple()]|[].
+-spec samples_to_table(version(), [samples()]|[]) -> table().
 samples_to_table(?DUMP_FMT_VERSION, Samples) ->
     samples_to_table(?DUMP_010_FIELDS, Samples, []);
 
@@ -123,7 +137,7 @@ samples_to_table(_Version, _Samples) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec samples_to_table([param()], [tuple()]|[], [tuple()]|[]) -> [tuple()]|[].
+-spec samples_to_table([param()], [samples()]|[], table()) -> table().
 samples_to_table(_Params, [], List) ->
     List;
 
@@ -132,17 +146,18 @@ samples_to_table(Params, [{Mod, Fun, Data}|Rest], List) ->
     samples_to_table(Params, Rest, List2).
 
 %%--------------------------------------------------------------------
-%% @doc scan the samples for the supplied `Mod' and `Fun'.
+%% @doc scan the measurements of the supplied `Mod' and `Fun'.
 %%
 %% For each list of measurements, currently 3, we generate a list of 3
 %% tuples and append them to the accumulator `List', i.e.
 %%
-%% `{Mod, Fun, Seq, Param, Value}'
+%% see `table_row()' for details.
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec samples_to_table([param()], atom(), atom(), [list()]|[], integer(), [list()]|[])
-                      -> [tuple()]|[].
+-spec samples_to_table([param()], module(), function(),
+                       [measurements()]|[], integer(), table())
+                      -> table().
 samples_to_table(_Params, _Mod, _Fun, [], _Seq, List) ->
     List;
 
