@@ -24,3 +24,18 @@ file_access_test_() ->
      ]}.
 
 %%--------------------------------------------------------------------
+
+-define(KV_battle_bench, "test/kv_battle-20230908-1.dat").
+-define(Info_kv_battle, #{functions =>
+                              [bench_dict,bench_ets,bench_gb_tree,bench_keyfind,
+                               bench_maps,bench_orddict,bench_proplists],
+                          modules => [bench_kv],
+                          version => [0,1,0],
+                          params => [memory,reductions,wall_time]}).
+
+file_read_test_() ->
+    {"File read",
+     [ {"info", ?_assertEqual(?Info_kv_battle, r3bench_dump:info(?KV_battle_bench)) }
+     ]}.
+
+%%--------------------------------------------------------------------
