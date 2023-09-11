@@ -199,11 +199,11 @@ unzip(Samples) ->
 %%--------------------------------------------------------------------
 -spec unzip(table(), map()) -> map().
 unzip([], Map) ->
-    maps:map(fun (K, V) -> lists:usort(V) end, Map);
+    maps:map(fun (_K, V) -> lists:usort(V) end, Map);
 
 unzip([{Mod, Fun, _, Par, _}|Rest], Map) ->
     Map1 = #{modules => Mod, functions => Fun, params => Par},
-    Map2 = maps:merge_with(fun (K, L, X) -> [X|L] end, Map, Map1),
+    Map2 = maps:merge_with(fun (_K, L, X) -> [X|L] end, Map, Map1),
     unzip(Rest, Map2).
 
 %%--------------------------------------------------------------------
