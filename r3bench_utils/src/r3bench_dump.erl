@@ -10,7 +10,7 @@
 %%%-------------------------------------------------------------------
 -module(r3bench_dump).
 
--export([print/1, table/1, load_ets/1, info/1]).
+-export([read_file/1, print/1, table/1, load_ets/1, info/1]).
 
 %%--------------------------------------------------------------------
 
@@ -118,13 +118,33 @@ info(Filename) ->
 %%--------------------------------------------------------------------
 %% @doc read and unpack a dump file and return the raw samples.
 %%
+%% Some sanity checks are performed on the file contents. In case of
+%% an error, `{error, Reason}' is returned, otherwise we return the
+%% `{Version, Samples}' tuple.
+%%
 %% @end
 %%--------------------------------------------------------------------
--spec read_file(file:name_all()) -> dumpfile().
+-spec read_file(file:name_all()) -> dumpfile() | {error, term()}.
 read_file(Filename) ->
-    {ok, Data} = file:read_file(Filename),
-    {Version, Samples} = erlang:binary_to_term(Data),
-    {Version, Samples}.
+    case file:read_file(Filename) of
+        Error = {error, _} ->
+            Error;
+        {ok, Data} ->
+            case Data of
+                <<>> ->
+                    {error, badarg};
+                _ ->
+                    case erlang:binary_to_term(Data) of
+                        Error = {error, _} ->
+                            Error;
+                        {Version, Samples}
+                          when is_list(Version) andalso is_list(Samples) ->
+                            {Version, Samples};
+                        _ ->
+                            {error, invalid_file}
+                    end
+            end
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal functions
