@@ -10,7 +10,7 @@
 %%%-------------------------------------------------------------------
 -module(r3bench_utils).
 
--export([read_file/1, print/1, table/1, load_ets/1, info/1]).
+-export([read_file/1, print/1, table/1, load_ets/1, info/1, gen_map/1]).
 
 %%--------------------------------------------------------------------
 
@@ -42,6 +42,12 @@
 
 -type table_row() :: {module(), function(), integer(), param(), float()}.
 %% Each row of the table, for example as loaded into an ETS table.
+
+-type samples_map() :: #{module() =>
+                             #{function() =>
+                                   #{param() => [float()]}
+                              }}.
+%% The samples as a map.
 
 %%--------------------------------------------------------------------
 %% @doc read and print a baseline dump file.
@@ -147,6 +153,33 @@ read_file(Filename) ->
     end.
 
 %%--------------------------------------------------------------------
+%% @doc Return a map of the baseline data hierarchy.
+%%
+%% The map will contain one sub-map for each module name in the
+%% baseline data.
+%%
+%% Each module sub-map will contain one sub-map for each function
+%% within that module.
+%%
+%% Each function sub-map will contain one sub-map for each data
+%% parameter. The paramater names are based on the version of baseline
+%% file, see the `param()' data type for details.
+%%
+%% Each param element will contain the corrensponding benchmarks as a
+%% list of floats.
+%%
+%% For now, in the interest of simplicity, we are generating the
+%% nested map from the `table()' structure, although in future this
+%% may change.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec gen_map(file:name_all()) -> samples_map().
+gen_map(File) ->
+    {_Version, Table} = table(File),
+    table_to_map(Table).
+
+%%--------------------------------------------------------------------
 %% Internal functions
 %%--------------------------------------------------------------------
 
@@ -225,5 +258,35 @@ unzip([{Mod, Fun, _, Par, _}|Rest], Map) ->
     Map1 = #{modules => Mod, functions => Fun, params => Par},
     Map2 = maps:merge_with(fun (_K, L, X) -> [X|L] end, Map, Map1),
     unzip(Rest, Map2).
+
+%%--------------------------------------------------------------------
+%% @doc convert a table of benchmarks to a map of maps.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec table_to_map(table()) -> samples_map().
+table_to_map(Table) ->
+    table_to_map(Table, #{}).
+
+%%--------------------------------------------------------------------
+%% @doc convert a table of benchmarks to a map of maps.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec table_to_map(table(), samples_map()) -> samples_map().
+table_to_map([], Map) ->
+    Map;
+
+table_to_map([ {Mod, Fun, _Seq, Par, Value} | Rest ], Map) ->
+    Mod_map = maps:get(Mod, Map, #{}),
+
+    Fun_map  = maps:get(Fun, Mod_map, #{}),
+    Fun_map2 = maps:update_with(Par, fun (Vs) -> Vs++[Value] end, [], Fun_map),
+
+    Mod_map2 = maps:put(Fun, Fun_map2, Mod_map),
+
+    Map2 = maps:put(Mod, Mod_map2, Map),
+
+    table_to_map(Rest, Map2).
 
 %%--------------------------------------------------------------------
