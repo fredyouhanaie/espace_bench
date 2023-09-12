@@ -131,7 +131,7 @@ do_command(Cmd, _Args) ->
 print_table([]) ->
     ok;
 print_table([Row|Rest]) ->
-    io:format("~p~n", [Row]),
+    io:format("~p.~n", [Row]),
     print_table(Rest).
 
 %%====================================================================
