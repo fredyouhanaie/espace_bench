@@ -8,7 +8,7 @@
 %%% @end
 %%% Created : 2 Sep 2023 by Fred Youhanaie <fyrlang@anydata.co.uk>
 %%%-------------------------------------------------------------------
--module(r3bench_dump).
+-module(r3bench_utils).
 
 -export([read_file/1, print/1, table/1, load_ets/1, info/1]).
 
