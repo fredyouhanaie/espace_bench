@@ -11,6 +11,7 @@
 -module(r3bench_utils).
 
 -export([read_file/1, print/1, table/1, load_ets/1, info/1, gen_map/1]).
+-export([save_map/2]).
 
 %%--------------------------------------------------------------------
 
@@ -288,5 +289,91 @@ table_to_map([ {Mod, Fun, _Seq, Par, Value} | Rest ], Map) ->
     Map2 = maps:put(Mod, Mod_map2, Map),
 
     table_to_map(Rest, Map2).
+
+%%--------------------------------------------------------------------
+%% Given a map of samples, as produced with `gen_map/1', save the data
+%% in a directory hierarch, that correspond to the map structure.
+%%
+%% Basically, we will have directories for module names, where each
+%% contain directories for the functions names. Within each function
+%% directory we will have one file per benchmark paramater containing
+%% the measurements for that function.
+%%
+%% The whole set of directories will be in the `Dir' pathname, which
+%% should be either non-existent or an empty directory.
+%%
+-spec save_map(map(), file:name_all()) -> ok.
+save_map(Map, Dir) ->
+    case file:make_dir(Dir) of
+        ok ->
+            save_mod(maps:iterator(Map), Dir);
+        {error, eexist} ->
+            case file:list_dir_all(Dir) of
+                {ok, []} ->
+                    save_mod(maps:iterator(Map), Dir);
+                {ok, _} ->
+                    {error, not_empty};
+                Error ->
+                    Error
+            end;
+        Error ->
+            Error
+    end.
+
+%%--------------------------------------------------------------------
+%% save the measurements corresponding to modules in their own
+%% directories, relative to `Dir'.
+%%
+%% The directory path `Dir' is expected to correspond to the set of
+%%  benchmarks that include the modules.
+%%
+-spec save_mod(maps:iterator(), file:name_all()) -> ok.
+save_mod(Iter, Dir) ->
+    case maps:next(Iter) of
+        none ->
+            ok;
+        {Mod, Fun_map, Iter2} ->
+            Mod_dir = filename:join(Dir, Mod),
+            ok = file:make_dir(Mod_dir),
+            save_funs(maps:iterator(Fun_map), Mod_dir),
+            save_mod(Iter2, Dir)
+    end.
+
+%%--------------------------------------------------------------------
+%% save the measurements coresponding to functions in their own
+%% directories, relative to `Dir'.
+%%
+%% The directory path `Dir' is expected to correspond to the parent
+%% module of the functions.
+%%
+-spec save_funs(maps:iterator(), file:name_all()) -> ok.
+save_funs(Iter, Dir) ->
+    case maps:next(Iter) of
+        none ->
+            ok;
+        {Fun, Par_map, Iter2} ->
+            Fun_dir = filename:join(Dir, Fun),
+            ok = file:make_dir(Fun_dir),
+            save_pars(maps:iterator(Par_map), Fun_dir),
+            save_funs(Iter2, Dir)
+    end.
+
+%%--------------------------------------------------------------------
+%% save the measurements corresponding to a map of `{Par,Val_list}'
+%% element in their own files. The files will be within the `Dir'
+%% directory.
+%%
+-spec save_pars(maps:iterator(), file:name_all()) -> ok.
+save_pars(Iter, Dir) ->
+    case maps:next(Iter) of
+        none ->
+            ok;
+        {Par, Par_values, Iter2} ->
+            Par_file = atom_to_list(Par),
+            {ok, Par_dev} = file:open(filename:join(Dir, Par_file), [write]),
+            [ io:format(Par_dev, "~w~n", [Val]) || Val <- Par_values ],
+            file:close(Par_dev),
+            save_pars(Iter2, Dir)
+    end.
 
 %%--------------------------------------------------------------------
