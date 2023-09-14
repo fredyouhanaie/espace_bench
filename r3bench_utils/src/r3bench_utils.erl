@@ -178,7 +178,7 @@ read_file(Filename) ->
 -spec gen_map(file:name_all()) -> samples_map().
 gen_map(File) ->
     {_Version, Table} = table(File),
-    table_to_map(Table).
+    table_to_map(Table, #{}).
 
 %%--------------------------------------------------------------------
 %% Internal functions
@@ -261,16 +261,7 @@ unzip([{Mod, Fun, _, Par, _}|Rest], Map) ->
     unzip(Rest, Map2).
 
 %%--------------------------------------------------------------------
-%% @doc convert a table of benchmarks to a map of maps.
-%%
-%% @end
-%%--------------------------------------------------------------------
--spec table_to_map(table()) -> samples_map().
-table_to_map(Table) ->
-    table_to_map(Table, #{}).
-
-%%--------------------------------------------------------------------
-%% @doc convert a table of benchmarks to a map of maps.
+%% @doc Convert a table of benchmarks to a map of maps.
 %%
 %% @end
 %%--------------------------------------------------------------------
