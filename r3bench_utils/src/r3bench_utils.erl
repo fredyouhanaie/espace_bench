@@ -282,17 +282,21 @@ table_to_map([ {Mod, Fun, _Seq, Par, Value} | Rest ], Map) ->
     table_to_map(Rest, Map2).
 
 %%--------------------------------------------------------------------
+%% @doc Extract and save samples from a map into data files.
+%%
 %% Given a map of samples, as produced with `gen_map/1', save the data
 %% in a directory hierarch, that correspond to the map structure.
 %%
 %% Basically, we will have directories for module names, where each
-%% contain directories for the functions names. Within each function
-%% directory we will have one file per benchmark paramater containing
+%% contains directories for the functions. Within each function
+%% directory there will be one file per benchmark paramater containing
 %% the measurements for that function.
 %%
 %% The whole set of directories will be in the `Dir' pathname, which
 %% should be either non-existent or an empty directory.
 %%
+%% @end
+%%--------------------------------------------------------------------
 -spec save_map(map(), file:name_all()) -> ok.
 save_map(Map, Dir) ->
     case file:make_dir(Dir) of
@@ -312,12 +316,16 @@ save_map(Map, Dir) ->
     end.
 
 %%--------------------------------------------------------------------
-%% save the measurements corresponding to modules in their own
+%% @doc Extract and save samples from a map into data files.
+%%
+%% Save the measurements corresponding to the modules in their own
 %% directories, relative to `Dir'.
 %%
-%% The directory path `Dir' is expected to correspond to the set of
-%%  benchmarks that include the modules.
+%% The directory path `Dir' should exist, and is expected to
+%% correspond to the set of benchmarks that include the modules.
 %%
+%% @end
+%%--------------------------------------------------------------------
 -spec save_mod(maps:iterator(), file:name_all()) -> ok.
 save_mod(Iter, Dir) ->
     case maps:next(Iter) of
@@ -331,12 +339,16 @@ save_mod(Iter, Dir) ->
     end.
 
 %%--------------------------------------------------------------------
-%% save the measurements coresponding to functions in their own
+%% @doc Save functions into individual directories.
+%%
+%% Save the measurements corresponding to functions in their own
 %% directories, relative to `Dir'.
 %%
 %% The directory path `Dir' is expected to correspond to the parent
 %% module of the functions.
 %%
+%% @end
+%%--------------------------------------------------------------------
 -spec save_funs(maps:iterator(), file:name_all()) -> ok.
 save_funs(Iter, Dir) ->
     case maps:next(Iter) of
@@ -350,10 +362,14 @@ save_funs(Iter, Dir) ->
     end.
 
 %%--------------------------------------------------------------------
-%% save the measurements corresponding to a map of `{Par,Val_list}'
+%% @doc Save the benchmark mesasurements into text files.
+%%
+%% Save the measurements corresponding to a map of `{Par,Val_list}'
 %% element in their own files. The files will be within the `Dir'
 %% directory.
 %%
+%% @end
+%%--------------------------------------------------------------------
 -spec save_pars(maps:iterator(), file:name_all()) -> ok.
 save_pars(Iter, Dir) ->
     case maps:next(Iter) of
