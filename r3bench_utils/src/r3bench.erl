@@ -121,6 +121,13 @@ do_command(Cmd, _) when Cmd == dump orelse Cmd == table ->
     ?LOG_ERROR("~p: single filename expected.~n", [Cmd]),
     error;
 
+do_command(extract, [File, Dir]) ->
+    r3bench_utils:save_map(r3bench_utils:gen_map(File), Dir);
+
+do_command(extract, _Args) ->
+    ?LOG_ERROR("extract: filename and directory expected.~n", []),
+    error;
+
 do_command(Cmd, _Args) ->
     ?LOG_ERROR("Unknown command (~p).~n", [Cmd]),
     usage(),
