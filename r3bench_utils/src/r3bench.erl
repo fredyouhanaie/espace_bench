@@ -111,12 +111,12 @@ process_command([Cmd|Args]) ->
 
 -spec do_command(atom(), list()) -> ok|error.
 do_command(dump, [File]) ->
-    r3bench_utils:print(File),
+    catch r3bench_utils:print(File),
     ok;
 
 do_command(table, [File]) ->
     {_Version, Table} = r3bench_utils:table(File),
-    print_table(Table),
+    catch print_table(Table),
     ok;
 
 do_command(info, [File]) ->
