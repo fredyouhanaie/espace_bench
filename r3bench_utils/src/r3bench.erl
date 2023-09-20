@@ -32,6 +32,13 @@
          {loglevel, $l,        "loglevel", {atom, notice}, "Set log level."}
         ]).
 
+-define(Commands,
+        [ {"dump",    "Dump the contents of FILE to stdout"},
+          {"extract", "Extract the contents of FILE into DIR"},
+          {"info",    "Print information about FILE"},
+          {"table",   "Print contents of FILE in tabular form"}
+        ]).
+
 %%====================================================================
 %% API functions
 %%====================================================================
@@ -84,7 +91,10 @@ process_args(Opts, Args) ->
 usage() ->
     io:format("Version ~p.~n", [?Version]),
     getopt:usage(?Opt_specs, atom_to_list(?MODULE), "command ...",
-                 [ {"command", "command to execute, e.g. dump, table, info ..."} ]).
+                 [ {"command", "command to execute, e.g. dump, table, info ..."} ]),
+    [ io:format("  ~10s  ~s~n", [Cmd, Desc])
+      || {Cmd, Desc} <- ?Commands ],
+    ok.
 
 %%--------------------------------------------------------------------
 
