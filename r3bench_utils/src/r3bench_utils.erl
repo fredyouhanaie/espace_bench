@@ -11,7 +11,7 @@
 -module(r3bench_utils).
 
 -export([read_file/1, print/1, table/1, load_ets/1, info/1, gen_map/1]).
--export([save_map/2]).
+-export([save_map/2, ministat/4]).
 
 %%--------------------------------------------------------------------
 
@@ -179,6 +179,13 @@ read_file(Filename) ->
 gen_map(File) ->
     {_Version, Table} = table(File),
     table_to_map(Table, #{}).
+
+%%--------------------------------------------------------------------
+
+ministat(Map, Conf_level, {M1,F1,P1}, {M2,F2,P2}) ->
+    DS_1 = map_to_ds(Map, M1, F1, P1),
+    DS_2 = map_to_ds(Map, M2, F2, P2),
+    eministat:x(Conf_level, DS_1, DS_2).
 
 %%--------------------------------------------------------------------
 %% Internal functions
@@ -382,5 +389,13 @@ save_pars(Iter, Dir) ->
             file:close(Par_dev),
             save_pars(Iter2, Dir)
     end.
+
+%%--------------------------------------------------------------------
+
+map_to_ds(Map, Mod, Fun, Par) ->
+    Data = map_get(Par, map_get(Fun, map_get(Mod, Map))),
+    MFP0 = [ atom_to_list(X) || X <- [Mod, Fun, Par] ],
+    Name = string:join(MFP0, "__"),
+    eministat_ds:from_list(Name, Data).
 
 %%--------------------------------------------------------------------
